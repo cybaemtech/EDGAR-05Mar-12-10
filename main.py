@@ -510,23 +510,31 @@ def _build_filing_list(recent: dict, cik: str, form_type: str, count: int) -> li
 # ENDPOINTS
 # ═══════════════════════════════════════════════════════════════
 
-@app.get("/", summary="API Info", tags=["General"])
-def root():
-    return {
-        "api": "SEC EDGAR Filing Text Extraction API",
-        "version": "2.0.0",
-        "supported_form_types": SUPPORTED_FORMS,
-        "endpoints": {
-            "GET /company/{ticker}": "Company info + recent filings grouped by type",
-            "GET /filings/{ticker}": "List filings filtered by form type",
-            "GET /filing/text": "Extract text from a specific filing (by accession number)",
-            "GET /filing/latest": "Extract text from the most recent filing of a given type",
-            "GET /filing/section": "Extract a specific section from a 10-K or 10-Q",
-            "GET /filing/bulk-latest": "Latest filing text for ALL key form types in one call",
-            "GET /search": "Full-text search across EDGAR filings",
-            "GET /forms": "List supported form types with descriptions",
-        },
-    }
+_API_INFO = {
+    "api": "SEC EDGAR Filing Text Extraction API",
+    "version": "2.0.0",
+    "supported_form_types": SUPPORTED_FORMS,
+    "endpoints": {
+        "GET /company/{ticker}": "Company info + recent filings grouped by type",
+        "GET /filings/{ticker}": "List filings filtered by form type",
+        "GET /filing/text": "Extract text from a specific filing (by accession number)",
+        "GET /filing/latest": "Extract text from the most recent filing of a given type",
+        "GET /filing/section": "Extract a specific section from a 10-K or 10-Q",
+        "GET /filing/bulk-latest": "Latest filing text for ALL key form types in one call",
+        "GET /search": "Full-text search across EDGAR filings",
+        "GET /forms": "List supported form types with descriptions",
+    },
+}
+
+@app.get("/", summary="API Info / Frontend", tags=["General"])
+async def root(request: Request):
+    # If frontend is built and browser requests HTML, serve the SPA
+    _frontend_index = FRONTEND_DIR / "index.html"
+    if _frontend_index.is_file():
+        accept = request.headers.get("accept", "")
+        if "text/html" in accept:
+            return FileResponse(_frontend_index)
+    return _API_INFO
 
 
 @app.get("/forms", summary="List supported filing types", tags=["General"])
