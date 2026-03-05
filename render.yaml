@@ -1,0 +1,23 @@
+# render.yaml — Render Blueprint for SEC EDGAR Filing Explorer
+# Docs: https://docs.render.com/blueprint-spec
+#
+# Deploy: Push to GitHub/GitLab, then connect the repo on Render Dashboard
+# or use "New > Blueprint" and point to this file.
+
+services:
+  - type: web
+    name: sec-edgar-api
+    runtime: python
+    region: oregon
+    plan: free                    # free tier (750 hrs/month, spins down after 15 min idle)
+    buildCommand: |
+      pip install -r requirements.txt
+      cd frontend && npm install && npm run build && cd ..
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: NODE_VERSION
+        value: "20"
+    healthCheckPath: /
+    autoDeploy: true              # auto-deploy on push to main branch
